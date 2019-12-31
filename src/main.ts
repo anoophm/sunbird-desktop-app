@@ -30,7 +30,8 @@ const setSecurityPolicy = () => {
         img-src * blob: data:;
         frame-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls};
         child-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls};
-        worker-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls}`]
+        worker-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls}`],
+        // Content-Security-Policy-Report-Only
       }, 
       cancel: false,
     })
