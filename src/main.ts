@@ -16,7 +16,26 @@ import { debounceTime } from "rxjs/operators";
 import { HTTPService } from "@project-sunbird/ext-framework-server/services";
 import * as os from "os";
 const startTime = Date.now();
-let envs = {};
+let envs: any = {};
+const { session } = require('electron')
+const setSecurityPolicy = () => {
+  const whitelistUrls = envs.whiteListUrls.join(' ');
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [`
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' ${envs.APP_BASE_URL} ${whitelistUrls};
+        script-src-elem 'self' 'unsafe-eval' 'unsafe-inline' ${envs.APP_BASE_URL} ${whitelistUrls};
+        img-src * blob: data:;
+        frame-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls};
+        child-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls};
+        worker-src 'self' ${envs.APP_BASE_URL} blob: ${whitelistUrls}`]
+      }, 
+      cancel: false,
+    })
+  })
+}
 const windowIcon = path.join(__dirname, "build", "icons", "png", "512x512.png");
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -205,6 +224,7 @@ const checkPluginsInitialized = () => {
 const bootstrapDependencies = async () => {
   await copyPluginsMetaData();
   await setAvailablePort();
+  setSecurityPolicy();
   await Promise.all([framework(), checkPluginsInitialized()]);
   await containerAPI.bootstrap();
   await startApp();
